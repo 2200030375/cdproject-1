@@ -3,7 +3,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/2200030375/book-app-cicd.git'
+                git 'https://github.com/2200030375/cdproject-1.git'
             }
         }
         stage('Build') {
