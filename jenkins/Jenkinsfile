@@ -7,11 +7,17 @@ pipeline {
             }
         }
         stage('Build') {
+            options { timeout(time: 10, unit: 'MINUTES') } // Timeout to prevent stalls
             steps {
                 sh '''
                     npm install
                     npm run build
                 '''
+            }
+        }
+        stage('Deploy Approval') {
+            steps {
+                input message: 'Proceed to deploy?', ok: 'Yes' // Manual approval for deployment
             }
         }
         stage('Deploy') {
@@ -24,7 +30,10 @@ pipeline {
                 script {
                     def status = sh(script: 'bash scripts/health_check.sh', returnStatus: true)
                     if (status != 0) {
+                        echo "❌ Health check failed."
                         error("Health check failed. Triggering rollback.")
+                    } else {
+                        echo "✅ Health check passed."
                     }
                 }
             }
@@ -34,7 +43,11 @@ pipeline {
                 expression { currentBuild.result == null || currentBuild.result == 'SUCCESS' }
             }
             steps {
-                sh 'bash scripts/save_last_good_commit.sh'
+                sh '''
+                    echo "Saving current commit:"
+                    git rev-parse HEAD
+                    bash scripts/save_last_good_commit.sh
+                '''
             }
         }
     }
