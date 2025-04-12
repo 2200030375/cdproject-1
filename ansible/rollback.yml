@@ -1,0 +1,10 @@
+- name: Rollback Web App
+  hosts: web
+  become: yes
+  tasks:
+    - name: Checkout last good commit
+      shell: |
+        cd /opt/webapp
+        git checkout $(cat /opt/webapp/last_good_commit.txt)
+    - name: Redeploy app
+      shell: cp /opt/webapp/index.html /var/www/html/index.html
